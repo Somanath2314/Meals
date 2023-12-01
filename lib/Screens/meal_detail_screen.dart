@@ -1,0 +1,112 @@
+import 'package:flutter/material.dart';
+import 'package:meals/models/meal.dart';
+// import 'package:meals/widgets/meal_detail_contents.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meals/providers/favorites_provider.dart';
+import 'package:transparent_image/transparent_image.dart';
+
+class mealDetailScreen extends ConsumerWidget {
+  mealDetailScreen({super.key, required this.meal});
+
+  Meal meal;
+  bool isStarRotated = false;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: () {
+              final wasAdded = ref
+                  .read(favoriteMealsProvider.notifier)
+                  .toggleFavoritesStatus(meal);
+              isStarRotated = !isStarRotated;
+              ScaffoldMessenger.of(context).clearSnackBars();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    content: Text(
+                  wasAdded ? 'Added to favorites' : 'Removed',
+                )),
+              );
+            },
+            icon: AnimatedSwitcher(
+              duration: Duration(milliseconds: 300),
+              child: Icon(
+                Icons.star,
+                key: ValueKey<bool>(isStarRotated),
+              ),
+              transitionBuilder: (child, animation) => RotationTransition(
+                turns: animation,
+                child: child,
+              ),
+            ),
+          ),
+        ],
+        title: Text(
+          meal.title,
+          textAlign: TextAlign.center,
+        ),
+      ),
+      body: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Hero(
+                tag: meal.id,
+                child: FadeInImage(
+                  placeholder: MemoryImage(kTransparentImage),
+                  image: NetworkImage(meal.imageUrl),
+                  fit: BoxFit.fill,
+                  height: 200,
+                  width: double.infinity,
+                ),
+              ),
+              const SizedBox(
+                height: 24,
+              ),
+              Text(
+                "Ingredients",
+                style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(
+                height: 18,
+              ),
+              for (final ingredient in meal.ingredients)
+                Text(
+                  ingredient,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                      color: Theme.of(context).colorScheme.onBackground,
+                      fontWeight: FontWeight.w400),
+                ),
+              const SizedBox(
+                height: 24,
+              ),
+              Text(
+                "Steps",
+                style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(
+                height: 18,
+              ),
+              for (final step in meal.steps)
+                Text(
+                  step,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                      color: Theme.of(context).colorScheme.onBackground,
+                      fontWeight: FontWeight.w400),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
